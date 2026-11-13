@@ -7,6 +7,9 @@ export const DEFAULTS = {
   motion: "normal", // off | slow | normal | fast
   // Workspaces (spaces) whose name contains one of these are split into floors by repo; every other workspace is one room.
   splitSpaces: ["uctalent"],
+  // In a split workspace an agent stands on a floor only while it works, or for this many minutes after it finished or asked for you. Idle agents stay off the floors.
+  activeMinutes: 10,
+  screenLines: 40, // how much of the bottom of an agent's screen says which repo it is in
   // Rooms of the other workspaces: picked by a hash of the workspace name. Override one by name in `spaces`:
   //   "spaces": { "capstone1": { "roof": "#F2A33A", "wall": "#2D2433", "floor": "#4A3A55", "decor": "crates", "props": ["poster"], "tool": "box" } }
   rooms: [
@@ -17,7 +20,7 @@ export const DEFAULTS = {
   ],
   spaces: {},
   floors: [
-    { id: "ai", screen: ["uc-backend-fastapi", "fastapi"], name: "FastAPI", tool: "solder", decor: "circuit", props: ["window", "clock", "plant"], sky: "#10204A", wall: "#14233A", floor: "#1F3556", paint: "#37C5D6", match: ["*fastapi*", "ai-*", "*-ai", "*-ai-*", "*llm*"] },
+    { id: "ai", screen: ["uc-backend-fastapi"], name: "FastAPI", tool: "solder", decor: "circuit", props: ["window", "clock", "plant"], sky: "#10204A", wall: "#14233A", floor: "#1F3556", paint: "#37C5D6", match: ["*fastapi*", "ai-*", "*-ai", "*-ai-*", "*llm*"] },
     { id: "fe", screen: ["uc-frontend-nextjs", "frontend-nextjs", "fe-uc"], name: "Frontend", tool: "roller", decor: "paint", props: ["bunting", "poster", "plant"], wall: "#2A2147", floor: "#41337A", paint: "#8B5CF6", match: ["*frontend*", "*nextjs*", "fe-*", "*-fe", "*-fe-*"] },
     { id: "ats", screen: ["uc-ats-react", "ats-uc", "uc-ats"], name: "ATS", tool: "driver", decor: "furniture", props: ["window", "shelf", "lamp"], wall: "#3A2A24", floor: "#5A4034", paint: "#F2A33A", match: ["ats", "ats-*", "*-ats", "*-ats-*"] },
     { id: "be", screen: ["uc-talent-backend", "be-uc", "backend-uc"], name: "Backend", tool: "hammer", decor: "bricks", props: ["lamp", "clock", "poster"], wall: "#3B2523", floor: "#5C3A36", paint: "#C8553D", match: ["*backend*", "be-*", "*-be", "*-be-*", "*-api", "*-api-*"] },
@@ -66,7 +69,7 @@ export async function load() {
 
 // Makes the file (once) with the defaults so there is something to edit.
 export async function ensureFile() {
-  const body = JSON.stringify({ motion: DEFAULTS.motion, splitSpaces: DEFAULTS.splitSpaces, spaces: DEFAULTS.spaces, floors: DEFAULTS.floors, agents: DEFAULTS.agents, review: DEFAULTS.review, tokensOutAt: DEFAULTS.tokensOutAt }, null, 2);
+  const body = JSON.stringify({ motion: DEFAULTS.motion, splitSpaces: DEFAULTS.splitSpaces, activeMinutes: DEFAULTS.activeMinutes, screenLines: DEFAULTS.screenLines, spaces: DEFAULTS.spaces, floors: DEFAULTS.floors, agents: DEFAULTS.agents, review: DEFAULTS.review, tokensOutAt: DEFAULTS.tokensOutAt }, null, 2);
   await writeTextFile(path(), body, null).catch(() => {});
 }
 

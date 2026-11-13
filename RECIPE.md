@@ -14,7 +14,7 @@ A Herdr layout. The sidebar shows the UCTalent logo (round, 30 px) with the name
 
 ## How it behaves
 
-Floor: the innermost folder name of the agent's terminal matched against each floor's `match` patterns in order; when none fits, the lowest line of the terminal's last 150 lines (`hc read`, every 10 s while working, 30 s otherwise) that contains a floor's `screen` word; else the previous floor, else the Yard. Poses: working (tool swings, body bobs), review (working in a review/qc folder or title containing "review"), blocked, waiting (blocked for 60 s), done, idle, empty (context label at or above 95 while not working). Click focuses the pane. All motion is native `.loop()` / `.frames()`; `motion: off` removes it.
+Floor: the innermost folder name of the agent's terminal matched against each floor's `match` patterns in order; when none fits, the lowest line of the terminal's last 40 lines (`hc read`, every 10 s while working, 30 s otherwise) that contains a floor's `screen` word; else the previous floor, else the Yard. Only agents that are working, or finished/blocked within `activeMinutes` (10), are drawn on floors; idle ones only count in the header. The time in a state comes from `hc get --json` (`status_ms`). Poses: working (tool swings, body bobs), review (working in a review/qc folder or title containing "review"), blocked, waiting (blocked for 60 s), done, idle, empty (context label at or above 95 while not working). Click focuses the pane. All motion is native `.loop()` / `.frames()`; `motion: off` removes it.
 
 ## Built from
 

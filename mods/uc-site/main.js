@@ -37,15 +37,22 @@ export default class Site extends View {
     cx.timer.every(15000, (cx) => cx.notify()); // ages "needs you" into "still waiting"
     // In a split workspace, an agent whose folder names no floor (started above the repos) is placed by its screen.
     this.screen = new Map(); // address -> { id, at }
+    this.stat = new Map(); // address -> ms since the epoch when its status last changed (from hc get)
     const scan = (cx) => cx.spawn(async (cx) => {
       const where = new Map(panes().map((p) => [p.pane, p]));
       const split = new Set(spaces().filter((s) => isSplit(this.cfg, s.name)).map((s) => s.id));
       let changed = false;
       for (const a of agents()) {
-        if (!split.has(a.space) || matchFloor(this.cfg, where.get(a.pane)?.cwd)) continue;
+        const got = await hc(["get", a.address, "--json"]).catch(() => null);
+        try {
+          const ms = JSON.parse(got?.stdout ?? "{}").status_ms;
+          if (ms && ms !== this.stat.get(a.address)) { this.stat.set(a.address, ms); changed = true; }
+        } catch { /* no timestamp: the mod's own clock is used */ }
+        // Idle agents are not on a floor, so there is nothing to place.
+        if (!split.has(a.space) || a.status === "idle" || matchFloor(this.cfg, where.get(a.pane)?.cwd)) continue;
         const prev = this.screen.get(a.address);
         if (prev && Date.now() - prev.at < (a.status === "working" ? 10000 : 30000)) continue;
-        const out = await hc(["read", a.address, "--lines", "150"]).catch(() => null);
+        const out = await hc(["read", a.address, "--lines", String(this.cfg.screenLines)]).catch(() => null);
         const id = (out?.code === 0 ? screenFloor(this.cfg, out.stdout)?.id : null) ?? prev?.id ?? null; // no hit: stay where it was
         if (id !== prev?.id) changed = true;
         this.screen.set(a.address, { id, at: Date.now() });
@@ -130,7 +137,7 @@ export default class Site extends View {
       const prev = this.seen.get(a.address);
       const rec = prev?.status === a.status ? prev : { status: a.status, at: now };
       this.seen.set(a.address, rec);
-      const info = { at: rec.at, cwd: p?.cwd, pct: ctx.get(a.address) ?? null };
+      const info = { at: this.stat.get(a.address) ?? rec.at, cwd: p?.cwd, pct: ctx.get(a.address) ?? null };
       const list = bySpace.get(a.space) ?? [];
       list.push({ a, info, pose: this.pose(a, info, now) });
       bySpace.set(a.space, list);
@@ -146,7 +153,10 @@ export default class Site extends View {
       const section = v_flex().gap(3).flex_none().child(this.header(s, room.roof, crew, t));
       if (isSplit(cfg, s.name)) {
         const byFloor = new Map(cfg.floors.map((f) => [f.id, []]));
+        const limit = cfg.activeMinutes * 60000;
         for (const c of crew) {
+          // Off the floors: idle agents, and finished or waiting ones that have been quiet for a while.
+          if (c.a.status !== "working" && (c.a.status === "idle" || now - c.info.at > limit)) continue;
           const f = matchFloor(cfg, c.info.cwd) ?? cfg.floors.find((x) => x.id === this.screen.get(c.a.address)?.id) ?? fallbackFloor(cfg);
           byFloor.get(f.id).push(c);
         }
