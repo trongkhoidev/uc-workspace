@@ -1,0 +1,52 @@
+# UCTalent workspace
+
+A Herdr layout: the UCTalent logo and name on top, and under it a building where every coding agent is a pixel construction worker on the floor of the repo it works in.
+
+![UCTalent workspace](preview.png)
+
+*The picture is an illustration drawn from the mod's own rectangles, not a screenshot.*
+
+## Floors
+
+Top to bottom: **FastAPI**, **Frontend**, **ATS**, **Backend**, **Yard** (every other repo). An agent's floor comes from its terminal's folder name; the patterns are in `uc-workspace.json`.
+
+## Workers
+
+One body, one color per agent (Claude orange, Codex blue with a visor, OpenCode with an orange scarf, Antigravity with a rainbow belt, any other agent gets a stable color from its name).
+
+| Agent state | What the worker does |
+|---|---|
+| working | swings the floor's tool (hammer, paint roller, screwdriver, soldering iron, crate) |
+| working in a `*review*` / `*qc*` folder, or title says "review" | white helmet, clipboard and magnifier, head sweeps left and right |
+| needs you | raises an arm and waves, red `!` blinks |
+| needs you for over a minute | both arms up, red `!!` blinks faster |
+| done | jumps with sparkles |
+| idle | coffee mug, eyes closed, `zzz` |
+| out of tokens | slumps next to an empty bucket, hourglass (see below) |
+
+Click a worker to focus its terminal. Hover for title, branch and time in this state. The beacon on the roof turns red when anyone needs you.
+
+"Out of tokens" is a guess from context use: it needs a terminal label `claude.context` (set by a Claude status line script) at or above `tokensOutAt` (95) while the agent is not working. Agents that don't report it never show this pose.
+
+## Install
+
+```sh
+git clone https://github.com/trongkhoidev/uc-workspace
+cp uc-workspace/layouts/uc-workspace.json ~/.config/herdr-app/layouts/
+cp -R uc-workspace/mods/uc-brand uc-workspace/mods/uc-site ~/.config/herdr-app/mods/
+herdr-app do layout.switch --name uc-workspace
+```
+
+`ctrl-shift-l` switches back to your previous layout.
+
+## Customize
+
+Click **customize** on the roof. It creates `~/.config/herdr-app/uc-workspace.json` with the defaults and opens it; edits apply within a few seconds.
+
+- `motion`: `off`, `slow`, `normal`, `fast`
+- `floors[]`: `name`, `match` (folder-name patterns with `*`), `tool`, `decor` (`bricks`, `paint`, `furniture`, `circuit`, `crates`, `none`), `wall`, `floor`, `paint` colors, and `background` (a color, or an image path relative to `~/.config/herdr-app`)
+- `agents{}`: `shirt`, `hat`, `scarf`, `rainbow`, `visor`, or your own pictures: `image` for every state, `images: { working, idle, ... }` per state (GIF and animated WebP play by themselves)
+- `review[]`: folder patterns that count as review
+- `tokensOutAt`: context percent for the out-of-tokens pose
+
+The first floor whose `match` fits the innermost folder name wins; the floor with `"*"` catches the rest. Floors you list in your own order are shown in that order.
