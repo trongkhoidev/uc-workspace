@@ -19,6 +19,8 @@ const since = (ms) => {
   const m = Math.floor(ms / 60000);
   return m < 1 ? "<1m" : m < 60 ? `${m}m` : `${Math.floor(m / 60)}h`;
 };
+const r = (x, y, w, h, c) => div().absolute().left(x).top(y).w(w).h(h).bg(c);
+const clean = (x) => String(x ?? "").replace(/^[^\p{L}\p{N}]+/u, "").trim();
 const hash = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 const isSplit = (cfg, name) => cfg.splitSpaces.some((w) => String(name).toLowerCase().includes(String(w).toLowerCase()));
 
@@ -105,6 +107,31 @@ export default class Site extends View {
       .child(this.room(f, crew, Math.max(1, Math.floor((this.width - LABEL_W - 36) / SLOT)), m));
   }
 
+  // One row per tab that holds agents: status dot, the tab's name, a tiny worker per agent.
+  tabRow(s, tb, crew, t) {
+    const top = crew.reduce((x, c) => (RANK[c.a.status] > RANK[x] ? c.a.status : x), "idle");
+    const name = tb.named ? tb.name : clean(crew[0].a.title) || tb.name;
+    const here = s.active && tb.active;
+    let dot = div().size(6).rounded_full().flex_none().bg(COLOR[top]);
+    if (top === "blocked" && this.cfg.motion !== "off") dot = dot.loop("opacity", { from: 0.25, to: 1, period: 700 });
+    const heads = h_flex().gap(3).flex_none().items_center();
+    for (const c of crew.slice(0, 4)) {
+      const sp = looks(this.cfg, c.a.program?.key ?? c.a.app);
+      heads.child(div().id(`th-${c.a.address}`).relative().w(7).h(9).flex_none().opacity(c.a.status === "idle" ? 0.5 : 1)
+        .tooltip(`${c.a.program?.name || "agent"} · ${POSE_LABEL[c.pose]} · ${since(Date.now() - c.info.at)}`)
+        .on_click((_e, cx) => { cx.stop_propagation(); run("pane.focus", { pane: c.a.pane }); })
+        .child(r(0, 0, 7, 3, sp.hat ?? "#F2C94C")).child(r(0, 3, 7, 6, sp.shirt ?? "#6B7280")));
+    }
+    if (crew.length > 4) heads.child(div().text_size(9).text_color(t.dim).child(`+${crew.length - 4}`));
+    return h_flex().id(`tab-${tb.id}`).h(24).flex_none().pl(14).pr(6).gap(7).items_center().rounded(5).cursor_pointer()
+      .when(here, (el) => el.bg(t.selected)).when(!here, (el) => el.hover((x) => x.bg(t.hover)))
+      .tooltip(name)
+      .on_click(() => { run("space.select", { id: s.id }); run("tab.select", { id: tb.id }); })
+      .child(dot)
+      .child(div().flex_1().min_w(0).truncate().text_size(11.5).text_color(here ? t.foreground : t.muted).child(name))
+      .child(heads);
+  }
+
   header(s, roof, crew, t) {
     const counts = {};
     for (const c of crew) counts[c.a.status] = (counts[c.a.status] ?? 0) + 1;
@@ -151,19 +178,24 @@ export default class Site extends View {
       const own = cfg.spaces[s.name] ?? {};
       const room = { ...cfg.rooms[hash(s.name) % cfg.rooms.length], ...own };
       const section = v_flex().gap(3).flex_none().child(this.header(s, room.roof, crew, t));
+      // On a floor or in a room only while working, or for `activeMinutes` after finishing or asking for you.
+      const limit = cfg.activeMinutes * 60000;
+      const live = crew.filter((c) => c.a.status === "working" || (c.a.status !== "idle" && now - c.info.at <= limit));
       if (isSplit(cfg, s.name)) {
         const byFloor = new Map(cfg.floors.map((f) => [f.id, []]));
-        const limit = cfg.activeMinutes * 60000;
-        for (const c of crew) {
-          // Off the floors: idle agents, and finished or waiting ones that have been quiet for a while.
-          if (c.a.status !== "working" && (c.a.status === "idle" || now - c.info.at > limit)) continue;
+        for (const c of live) {
           const f = matchFloor(cfg, c.info.cwd) ?? cfg.floors.find((x) => x.id === this.screen.get(c.a.address)?.id) ?? fallbackFloor(cfg);
           byFloor.get(f.id).push(c);
         }
         for (const f of cfg.floors) if (byFloor.get(f.id).length) section.child(this.floorRow(f, byFloor.get(f.id), t, m));
-      } else if (crew.length) {
+      } else if (live.length) {
         section.child(h_flex().h(FLOOR_H).flex_none().px(0)
-          .child(this.room({ id: s.id, name: s.name, ...room }, crew, Math.max(1, Math.floor((this.width - 24) / SLOT)), m)));
+          .child(this.room({ id: s.id, name: s.name, ...room }, live, Math.max(1, Math.floor((this.width - 24) / SLOT)), m)));
+      }
+      // Every tab that holds an agent stays listed, so a finished or idle agent is one click away.
+      for (const tb of s.tabs) {
+        const here = crew.filter((c) => c.a.tab === tb.id);
+        if (here.length) section.child(this.tabRow(s, tb, here, t));
       }
       sections.push(section);
     }

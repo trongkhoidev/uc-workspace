@@ -6,7 +6,9 @@ A Herdr layout: the UCTalent logo and name on top, and under it a building where
 
 ## Workspaces and floors
 
-The sidebar has one section per Herdr workspace. Workspaces whose name contains `uctalent` (`splitSpaces`) are split into floors by repo: **FastAPI**, **Frontend**, **ATS**, **Backend**, and **Yard** for every other repo. A floor appears only while an agent is working on it: an agent stands on a floor while it works, or for `activeMinutes` (10) after it finished or asked for you. Idle agents are on no floor; they only count in the workspace's header ("1 working · 4 idle"). Every other workspace is a single decorated room. A worker exists only for a live agent; there are no placeholder workers.
+The sidebar has one section per Herdr workspace. Workspaces whose name contains `uctalent` (`splitSpaces`) are split into floors by repo: **FastAPI**, **Frontend**, **ATS**, **Backend**, and **Yard** for every other repo. A floor appears only while an agent is working on it: an agent stands on a floor while it works, or for `activeMinutes` (10) after it finished or asked for you. Idle agents are on no floor; they only count in the workspace's header ("1 working · 4 idle").
+
+The same rule applies to every workspace's room. Under each workspace, every **tab that holds an agent** stays listed (status dot, tab name, a tiny worker per agent), so an agent that finished or went idle is still one click away; clicking a row switches to that tab. Every other workspace is a single decorated room. A worker exists only for a live agent; there are no placeholder workers.
 
 An agent's floor comes from its terminal's folder name (`match` patterns in `uc-workspace.json`). Agents started above the repos, e.g. in a parent folder that holds every repo, are placed by their screen instead: every few seconds the mod reads the bottom of of their terminal with `hc read` and takes the floor whose `screen` words appear lowest in the last `screenLines` (40) lines, so an old conversation higher up the screen doesn't count. If nothing matches the agent stays where it was, or goes to the Yard. Nothing is stored or sent anywhere. Click a workspace name to switch to it.
 
