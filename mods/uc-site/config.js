@@ -6,10 +6,10 @@ import { appHome, readTextFile, writeTextFile } from "herdr";
 export const DEFAULTS = {
   motion: "normal", // off | slow | normal | fast
   floors: [
-    { id: "ai", name: "FastAPI", tool: "solder", decor: "circuit", props: ["window", "clock", "plant"], sky: "#10204A", wall: "#14233A", floor: "#1F3556", paint: "#37C5D6", match: ["*fastapi*", "ai-*", "*-ai", "*-ai-*", "*llm*"] },
-    { id: "fe", name: "Frontend", tool: "roller", decor: "paint", props: ["bunting", "poster", "plant"], wall: "#2A2147", floor: "#41337A", paint: "#8B5CF6", match: ["*frontend*", "*nextjs*", "fe-*", "*-fe", "*-fe-*"] },
-    { id: "ats", name: "ATS", tool: "driver", decor: "furniture", props: ["window", "shelf", "lamp"], wall: "#3A2A24", floor: "#5A4034", paint: "#F2A33A", match: ["ats", "ats-*", "*-ats", "*-ats-*"] },
-    { id: "be", name: "Backend", tool: "hammer", decor: "bricks", props: ["lamp", "clock", "poster"], wall: "#3B2523", floor: "#5C3A36", paint: "#C8553D", match: ["*backend*", "be-*", "*-be", "*-be-*", "*-api", "*-api-*"] },
+    { id: "ai", screen: ["uc-backend-fastapi", "fastapi"], name: "FastAPI", tool: "solder", decor: "circuit", props: ["window", "clock", "plant"], sky: "#10204A", wall: "#14233A", floor: "#1F3556", paint: "#37C5D6", match: ["*fastapi*", "ai-*", "*-ai", "*-ai-*", "*llm*"] },
+    { id: "fe", screen: ["uc-frontend-nextjs", "frontend-nextjs", "fe-uc"], name: "Frontend", tool: "roller", decor: "paint", props: ["bunting", "poster", "plant"], wall: "#2A2147", floor: "#41337A", paint: "#8B5CF6", match: ["*frontend*", "*nextjs*", "fe-*", "*-fe", "*-fe-*"] },
+    { id: "ats", screen: ["uc-ats-react", "ats-uc", "uc-ats"], name: "ATS", tool: "driver", decor: "furniture", props: ["window", "shelf", "lamp"], wall: "#3A2A24", floor: "#5A4034", paint: "#F2A33A", match: ["ats", "ats-*", "*-ats", "*-ats-*"] },
+    { id: "be", screen: ["uc-talent-backend", "be-uc", "backend-uc"], name: "Backend", tool: "hammer", decor: "bricks", props: ["lamp", "clock", "poster"], wall: "#3B2523", floor: "#5C3A36", paint: "#C8553D", match: ["*backend*", "be-*", "*-be", "*-be-*", "*-api", "*-api-*"] },
     { id: "yard", name: "Yard", tool: "box", decor: "crates", props: ["lamp", "plant", "rug"], wall: "#23262F", floor: "#363B49", paint: "#9AA0B5", match: ["*"] },
   ],
   // Per agent (matched by program key): colors, extras, or your own pictures.
@@ -61,11 +61,20 @@ export async function ensureFile() {
 const rx = (p) => new RegExp(`^${p.split("*").map((s) => s.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`, "i");
 const hit = (patterns, seg) => (patterns ?? []).some((p) => rx(p).test(seg));
 
-// The folder name that decides: the innermost segment any floor claims, "*" aside.
-export function floorFor(cfg, cwd) {
+// The folder name that decides: the innermost segment any floor claims, "*" aside. Null when none does.
+export function matchFloor(cfg, cwd) {
   const segs = String(cwd ?? "").split("/").filter(Boolean).reverse();
   for (const seg of segs) for (const f of cfg.floors) if (!f.match?.includes("*") && hit(f.match, seg)) return f;
-  return cfg.floors.find((f) => f.match?.includes("*")) ?? cfg.floors[cfg.floors.length - 1];
+  return null;
+}
+export const fallbackFloor = (cfg) => cfg.floors.find((f) => f.match?.includes("*")) ?? cfg.floors[cfg.floors.length - 1];
+
+// For agents started above the repos: the floor whose `screen` words appear lowest on the terminal's screen.
+export function screenFloor(cfg, text) {
+  const lines = String(text ?? "").split("\n").reverse();
+  const rxs = cfg.floors.map((f) => [f, (f.screen ?? []).map((w) => new RegExp(w.replace(/[.+?^${}()|[\]\\]/g, "\\$&"), "i"))]);
+  for (const line of lines) for (const [f, list] of rxs) if (list.some((r) => r.test(line))) return f;
+  return null;
 }
 
 export const isReview = (cfg, cwd, title) =>

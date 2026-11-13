@@ -1,27 +1,28 @@
 # UCTalent workspace
 
-A Herdr layout. The sidebar shows the UCTalent logo (round, 30 px) with the name "UCTalent" and nothing under it, then the spaces list, then a building of five floors with pixel construction workers as agents.
+A Herdr layout. The sidebar shows the UCTalent logo (round, 30 px) with the name "UCTalent" and nothing under it, then the Sites list (`uc-spaces`, 210 px, one card per space: 34 px pixel building with up to six windows lit by that space's agents, tiny workers, status line), then a building of five floors with pixel construction workers as agents.
 
 ![UCTalent workspace](preview.png)
 
 ## What you see
 
 - Sidebar 268 px wide, background `#181825`. Top row 46 px: logo `mods/uc-brand/logo.png` (purple circle with a white hexagon spiral), "UCTalent" 15 px semibold, search and fold-sidebar buttons. No subtitle.
-- Below it `spaces` (shipped mod, 96 px), then the building filling the rest, then the shipped settings footer.
+- Below it the Sites list (`uc-spaces`, 210 px; one card per space with a pixel building whose windows light per agent, tiny workers, a status line), then the building filling the rest, then the shipped settings footer.
 - The building: a 22 px roof row (beacon dot plus "all quiet" / "someone needs you" and a "customize" button), then five floors of 76 px, top to bottom FastAPI, Frontend, ATS, Backend, Yard. Each has a 58 px label (floor name only, status dot, "N at work" or "empty") and a rounded room with its own wall and floor color, furniture and props (windows with twinkling stars, swinging-light lamps, plants, posters, clocks, shelves, bunting).
 - Workers are 30x42 px bodies built from rectangles: helmet, face, shirt with two hi-vis stripes, trousers, boots, two arms. 36 px per slot; when a floor is full the last slot is a "+N" chip. Urgent agents are listed first.
 - Main area, tabs, file and changes panel, status bar are the shipped Herdr mods. Focus ring and accent are purple `#8b5cf6`.
 
 ## How it behaves
 
-Floor: the innermost folder name of the agent's terminal matched against each floor's `match` patterns in order. Poses: working (tool swings, body bobs), review (working in a review/qc folder or title containing "review"), blocked, waiting (blocked for 60 s), done, idle, empty (context label at or above 95 while not working). Click focuses the pane. All motion is native `.loop()` / `.frames()`; `motion: off` removes it.
+Floor: the innermost folder name of the agent's terminal matched against each floor's `match` patterns in order; when none fits, the lowest line of the terminal's last 150 lines (`hc read`, every 10 s while working, 30 s otherwise) that contains a floor's `screen` word; else the previous floor, else the Yard. Poses: working (tool swings, body bobs), review (working in a review/qc folder or title containing "review"), blocked, waiting (blocked for 60 s), done, idle, empty (context label at or above 95 while not working). Click focuses the pane. All motion is native `.loop()` / `.frames()`; `motion: off` removes it.
 
 ## Built from
 
-`layouts/uc-workspace.json` (a copy of a three-column layout with `uc-brand`, `spaces`, `uc-site`, shipped `tabs`, `pane`, `files`, `changes`, `workspace-status`). `mods/uc-brand/main.js` (logo, search via `mod.open picker`, `layout.resize` fold). `mods/uc-site/`: `main.js` (data from `agents()`, `panes()`, `terminals()`), `config.js` (defaults, glob matching, `~/.config/herdr-app/uc-workspace.json`), `sprites.js` (worker), `decor.js` (floor props). The layout depends on the herdr functions `agents`, `panes`, `terminals`, `theme`, `run`, `exec`, `readTextFile`, `writeTextFile`.
+`layouts/uc-workspace.json` (a copy of a three-column layout with `uc-brand`, `uc-spaces`, `uc-site`, shipped `tabs`, `pane`, `files`, `changes`, `workspace-status`). `mods/uc-brand/main.js` (logo, search via `mod.open picker`, `layout.resize` fold). `mods/uc-site/`: `main.js` (data from `agents()`, `panes()`, `terminals()`), `config.js` (defaults, glob matching, `~/.config/herdr-app/uc-workspace.json`), `sprites.js` (worker), `decor.js` (floor props). The layout depends on the herdr functions `agents`, `panes`, `terminals`, `theme`, `run`, `exec`, `readTextFile`, `writeTextFile`.
 
 ## Watch out
 
+- `uc-site` runs `hc read <terminal>` on agents whose folder names no floor, and keeps only the floor id.
 - The mod reads and writes only `uc-workspace.json` in the app folder and runs `open -t` (macOS) or `xdg-open` on it from the "customize" button. No network.
 - Out-of-tokens is a heuristic on a Claude-only label; other agents never reach it.
 - `herdr-app check` passes for both mods and the layout renders in Herdr 0.9.5 (macOS).

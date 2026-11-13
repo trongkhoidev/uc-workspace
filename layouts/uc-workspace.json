@@ -25,12 +25,12 @@
               "id": "spaces",
               "type": "block",
               "content": {
-                "mod": "spaces"
+                "mod": "uc-spaces"
               },
               "size": {
-                "px": 96
+                "px": 210
               },
-              "min": 60
+              "min": 90
             },
             {
               "id": "site",

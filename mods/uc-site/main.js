@@ -3,10 +3,10 @@
 
 import { View, div, image } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
-import { agents, panes, terminals, theme, run, exec, window } from "herdr";
+import { agents, panes, terminals, theme, run, exec, hc, window } from "herdr";
 import { worker, W, H } from "./sprites.js";
 import { decor } from "./decor.js";
-import { DEFAULTS, load, ensureFile, path, floorFor, isReview, looks } from "./config.js";
+import { DEFAULTS, load, ensureFile, path, matchFloor, fallbackFloor, screenFloor, isReview, looks } from "./config.js";
 
 const FLOOR_H = 76, LABEL_W = 58, SLOT = 36, WAIT_MS = 60 * 1000;
 const COLOR = { blocked: "#E5484D", done: "#46A758", working: "#F2A33A", idle: "#6B7280" };
@@ -32,6 +32,24 @@ export default class Site extends View {
     reload(cx);
     cx.timer.every(4000, reload);
     cx.timer.every(15000, (cx) => cx.notify()); // ages "needs you" into "still waiting"
+    // Agents started above the repos (cwd names no floor) are placed by what is on their screen.
+    this.screen = new Map(); // address -> { id, at }
+    const scan = (cx) => cx.spawn(async (cx) => {
+      const where = new Map(panes().map((p) => [p.pane, p]));
+      let changed = false;
+      for (const a of agents()) {
+        if (matchFloor(this.cfg, where.get(a.pane)?.cwd)) continue;
+        const prev = this.screen.get(a.address);
+        if (prev && Date.now() - prev.at < (a.status === "working" ? 10000 : 30000)) continue;
+        const out = await hc(["read", a.address, "--lines", "150"]).catch(() => null);
+        const id = (out?.code === 0 ? screenFloor(this.cfg, out.stdout)?.id : null) ?? prev?.id ?? null; // no hit: stay where it was
+        if (id !== prev?.id) changed = true;
+        this.screen.set(a.address, { id, at: Date.now() });
+      }
+      if (changed) cx.notify();
+    });
+    scan(cx);
+    cx.timer.every(8000, scan);
   }
 
   pose(a, info, now) {
@@ -94,7 +112,7 @@ export default class Site extends View {
       const rec = prev?.status === a.status ? prev : { status: a.status, at: now };
       this.seen.set(a.address, rec);
       const info = { at: rec.at, cwd: p?.cwd, branch: p?.branch, pct: ctx.get(a.address) ?? null, x: 0, y: 0 };
-      const f = floorFor(cfg, p?.cwd);
+      const f = matchFloor(cfg, p?.cwd) ?? cfg.floors.find((x) => x.id === this.screen.get(a.address)?.id) ?? fallbackFloor(cfg);
       byFloor.get(f.id).push({ a, info, pose: this.pose(a, info, now) });
     }
     for (const crew of byFloor.values()) crew.sort((x, y) => RANK[y.a.status] - RANK[x.a.status] || y.a.seq - x.a.seq);

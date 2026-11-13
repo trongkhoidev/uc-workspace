@@ -6,7 +6,11 @@ A Herdr layout: the UCTalent logo and name on top, and under it a building where
 
 ## Floors
 
-Top to bottom: **FastAPI**, **Frontend**, **ATS**, **Backend**, **Yard** (every other repo). An agent's floor comes from its terminal's folder name; the patterns are in `uc-workspace.json`.
+Top to bottom: **FastAPI**, **Frontend**, **ATS**, **Backend**, **Yard** (every other repo). An agent's floor comes from its terminal's folder name (`match` patterns in `uc-workspace.json`). Agents started above the repos, e.g. in a parent folder that holds every repo, are placed by their screen instead: every few seconds the mod reads the last 150 lines of their terminal with `hc read` and takes the floor whose `screen` words appear lowest. If nothing matches the agent stays where it was, or in the Yard. Nothing is stored or sent anywhere.
+
+## Sites (the spaces list)
+
+Each space is a small pixel building: its windows light up per agent (amber working, red blinking needs you, green done), tiny workers stand under its name, and one line says how many are working. No branch names.
 
 ## Workers
 
@@ -31,7 +35,7 @@ Click a worker to focus its terminal. Hover for the agent, its state and how lon
 ```sh
 git clone https://github.com/trongkhoidev/uc-workspace
 cp uc-workspace/layouts/uc-workspace.json ~/.config/herdr-app/layouts/
-cp -R uc-workspace/mods/uc-brand uc-workspace/mods/uc-site ~/.config/herdr-app/mods/
+cp -R uc-workspace/mods/uc-brand uc-workspace/mods/uc-spaces uc-workspace/mods/uc-site ~/.config/herdr-app/mods/
 herdr-app do layout.switch --name uc-workspace
 ```
 
@@ -42,7 +46,7 @@ herdr-app do layout.switch --name uc-workspace
 Click **customize** on the roof. It creates `~/.config/herdr-app/uc-workspace.json` with the defaults and opens it; edits apply within a few seconds.
 
 - `motion`: `off`, `slow`, `normal`, `fast`
-- `floors[]`: `name`, `match` (folder-name patterns with `*`), `tool`, `decor` (the floor's furniture: `bricks`, `paint`, `furniture`, `circuit`, `crates`, `none`), `props` (any of `window`, `lamp`, `plant`, `poster`, `clock`, `shelf`, `rug`, `bunting`), `sky` (window color), `wall`, `floor`, `paint` colors, and `background` (a color, or an image path relative to `~/.config/herdr-app`)
+- `floors[]`: `name`, `match` (folder-name patterns with `*`), `screen` (words that, seen on an agent's screen, put it on this floor), `tool`, `decor` (the floor's furniture: `bricks`, `paint`, `furniture`, `circuit`, `crates`, `none`), `props` (any of `window`, `lamp`, `plant`, `poster`, `clock`, `shelf`, `rug`, `bunting`), `sky` (window color), `wall`, `floor`, `paint` colors, and `background` (a color, or an image path relative to `~/.config/herdr-app`)
 - `agents{}`: `shirt`, `hat`, `scarf`, `rainbow`, `visor`, or your own pictures: `image` for every state, `images: { working, idle, ... }` per state (GIF and animated WebP play by themselves)
 - `review[]`: folder patterns that count as review
 - `tokensOutAt`: context percent for the out-of-tokens pose
