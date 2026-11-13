@@ -6,11 +6,11 @@ import { appHome, readTextFile, writeTextFile } from "herdr";
 export const DEFAULTS = {
   motion: "normal", // off | slow | normal | fast
   floors: [
-    { id: "ai", name: "FastAPI", tool: "solder", decor: "circuit", wall: "#14233A", floor: "#1F3556", paint: "#37C5D6", match: ["*fastapi*", "ai-*", "*-ai", "*-ai-*", "*llm*"] },
-    { id: "fe", name: "Frontend", tool: "roller", decor: "paint", wall: "#2A2147", floor: "#41337A", paint: "#8B5CF6", match: ["*frontend*", "*nextjs*", "fe-*", "*-fe", "*-fe-*"] },
-    { id: "ats", name: "ATS", tool: "driver", decor: "furniture", wall: "#3A2A24", floor: "#5A4034", paint: "#F2A33A", match: ["ats", "ats-*", "*-ats", "*-ats-*"] },
-    { id: "be", name: "Backend", tool: "hammer", decor: "bricks", wall: "#3B2523", floor: "#5C3A36", paint: "#C8553D", match: ["*backend*", "be-*", "*-be", "*-be-*", "*-api", "*-api-*"] },
-    { id: "yard", name: "Yard", tool: "box", decor: "crates", wall: "#23262F", floor: "#363B49", paint: "#9AA0B5", match: ["*"] },
+    { id: "ai", name: "FastAPI", tool: "solder", decor: "circuit", props: ["window", "clock", "plant"], sky: "#10204A", wall: "#14233A", floor: "#1F3556", paint: "#37C5D6", match: ["*fastapi*", "ai-*", "*-ai", "*-ai-*", "*llm*"] },
+    { id: "fe", name: "Frontend", tool: "roller", decor: "paint", props: ["bunting", "poster", "plant"], wall: "#2A2147", floor: "#41337A", paint: "#8B5CF6", match: ["*frontend*", "*nextjs*", "fe-*", "*-fe", "*-fe-*"] },
+    { id: "ats", name: "ATS", tool: "driver", decor: "furniture", props: ["window", "shelf", "lamp"], wall: "#3A2A24", floor: "#5A4034", paint: "#F2A33A", match: ["ats", "ats-*", "*-ats", "*-ats-*"] },
+    { id: "be", name: "Backend", tool: "hammer", decor: "bricks", props: ["lamp", "clock", "poster"], wall: "#3B2523", floor: "#5C3A36", paint: "#C8553D", match: ["*backend*", "be-*", "*-be", "*-be-*", "*-api", "*-api-*"] },
+    { id: "yard", name: "Yard", tool: "box", decor: "crates", props: ["lamp", "plant", "rug"], wall: "#23262F", floor: "#363B49", paint: "#9AA0B5", match: ["*"] },
   ],
   // Per agent (matched by program key): colors, extras, or your own pictures.
   //   { shirt, hat, scarf, rainbow, visor, image: "pictures/x.gif", images: { working: "...", idle: "..." } }

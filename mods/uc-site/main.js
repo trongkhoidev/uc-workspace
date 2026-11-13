@@ -8,7 +8,7 @@ import { worker, W, H } from "./sprites.js";
 import { decor } from "./decor.js";
 import { DEFAULTS, load, ensureFile, path, floorFor, isReview, looks } from "./config.js";
 
-const FLOOR_H = 66, LABEL_W = 58, SLOT = 36, WAIT_MS = 60 * 1000;
+const FLOOR_H = 76, LABEL_W = 58, SLOT = 36, WAIT_MS = 60 * 1000;
 const COLOR = { blocked: "#E5484D", done: "#46A758", working: "#F2A33A", idle: "#6B7280" };
 const RANK = { blocked: 4, done: 3, working: 2, idle: 1 };
 const POSE_LABEL = { working: "working", review: "reviewing", blocked: "needs you", waiting: "still waiting for you", done: "done", idle: "idle", empty: "out of tokens" };
@@ -47,7 +47,7 @@ export default class Site extends View {
     const own = sp.images?.[pose] ?? sp.image;
     const body = own ? image(own).w(W).h(H) : worker(sp, pose, floor.tool, floor.paint, m);
     return div().id(`w-${a.address}`).absolute().left(info.x).top(info.y).w(W).h(H).cursor_pointer()
-      .tooltip(`${a.title || a.program?.name || "agent"} · ${POSE_LABEL[pose]}${info.branch ? ` · ${info.branch}` : ""} · ${since(Date.now() - info.at)}`)
+      .tooltip(`${a.program?.name || "agent"} · ${POSE_LABEL[pose]} · ${since(Date.now() - info.at)}`)
       .on_click(() => run("pane.focus", { pane: a.pane })).child(body);
   }
 
@@ -59,7 +59,7 @@ export default class Site extends View {
     const bg = f.background && !String(f.background).startsWith("#") ? image(f.background).absolute().left(0).top(0).w_full().h_full() : null;
     const room = div().relative().flex_1().h_full().overflow_hidden().rounded(6).bg(!f.background || !String(f.background).startsWith("#") ? f.wall : f.background)
       .when(Boolean(bg), (el) => el.child(bg))
-      .children(decor(f.decor, f, m))
+      .children(decor(f, m))
       .child(div().absolute().left(0).top(FLOOR_H - 8).w_full().h(8).bg(f.floor));
     shown.forEach((c, i) => {
       c.info.x = 10 + i * SLOT;

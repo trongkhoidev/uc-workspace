@@ -81,7 +81,7 @@ export function worker(sp, pose, tool, paint, m) {
   if (pose === "done") body = lp(m, body, "top", 0, -8, 560, "ease-out");
   if (pose === "empty") body = body.top(5);
 
-  let slot = div().relative().w(W).h(H).child(body);
+  let slot = div().relative().w(W).h(H).child(r(2, 40, 26, 3, "#00000055")).child(body);
   if (pose === "blocked") slot = slot.child(bubble(m, "!", "#E5484D", 10, 500));
   if (pose === "waiting") slot = slot.child(bubble(m, "!!", "#E5484D", 7, 260));
   if (pose === "done") {
