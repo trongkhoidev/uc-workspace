@@ -1,6 +1,6 @@
 # UCTalent workspace
 
-A Herdr layout. The sidebar shows the UCTalent logo (round, 30 px) with the name "UCTalent" and nothing under it, then the Sites list (`uc-spaces`, 210 px, one card per space: 34 px pixel building with up to six windows lit by that space's agents, tiny workers, status line), then a building of five floors with pixel construction workers as agents.
+A Herdr layout. The sidebar shows the UCTalent logo (round, 30 px) with the name "UCTalent" and nothing under it, then one section per workspace, each with pixel construction workers (one per live agent) as agents.
 
 ![UCTalent workspace](preview.png)
 
