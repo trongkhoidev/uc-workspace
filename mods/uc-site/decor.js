@@ -6,7 +6,7 @@ import { div } from "gpui-kit";
 export const G = 68; // y of the floor line
 const r = (x, y, w, h, c) => div().absolute().left(x).top(y).w(w).h(h).bg(c);
 const R = (x, y, w, h, c) => div().absolute().right(x).top(y).w(w).h(h).bg(c);
-const lp = (m, el, prop, from, to, period) => (m.k ? el.loop(prop, { from, to, period: period * m.k }) : el);
+const lp = (m, el, prop, from, to, period) => (m.k && !(m.lite && prop === "opacity") ? el.loop(prop, { from, to, period: period * m.k }) : el);
 const FLAGS = ["#E5484D", "#F2C94C", "#46A758", "#3186FF"];
 
 export const PROPS = {
