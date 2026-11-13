@@ -22,17 +22,6 @@
           "type": "column",
           "children": [
             {
-              "id": "spaces",
-              "type": "block",
-              "content": {
-                "mod": "uc-spaces"
-              },
-              "size": {
-                "px": 210
-              },
-              "min": 90
-            },
-            {
               "id": "site",
               "type": "block",
               "content": {

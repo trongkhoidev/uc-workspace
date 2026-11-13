@@ -5,6 +5,17 @@ import { appHome, readTextFile, writeTextFile } from "herdr";
 
 export const DEFAULTS = {
   motion: "normal", // off | slow | normal | fast
+  // Workspaces (spaces) whose name contains one of these are split into floors by repo; every other workspace is one room.
+  splitSpaces: ["uctalent"],
+  // Rooms of the other workspaces: picked by a hash of the workspace name. Override one by name in `spaces`:
+  //   "spaces": { "capstone1": { "roof": "#F2A33A", "wall": "#2D2433", "floor": "#4A3A55", "decor": "crates", "props": ["poster"], "tool": "box" } }
+  rooms: [
+    { roof: "#46A758", tool: "driver", decor: "furniture", props: ["window", "plant", "lamp"], wall: "#1F2F2A", floor: "#2F4A40", paint: "#46A758" },
+    { roof: "#F2A33A", tool: "box", decor: "crates", props: ["bunting", "poster", "clock"], wall: "#2D2433", floor: "#4A3A55", paint: "#F2A33A" },
+    { roof: "#37C5D6", tool: "solder", decor: "circuit", props: ["window", "shelf", "rug"], wall: "#1C2B3A", floor: "#2E4A66", paint: "#37C5D6", sky: "#10204A" },
+    { roof: "#E5484D", tool: "hammer", decor: "bricks", props: ["lamp", "clock", "plant"], wall: "#33262A", floor: "#553B42", paint: "#E5484D" },
+  ],
+  spaces: {},
   floors: [
     { id: "ai", screen: ["uc-backend-fastapi", "fastapi"], name: "FastAPI", tool: "solder", decor: "circuit", props: ["window", "clock", "plant"], sky: "#10204A", wall: "#14233A", floor: "#1F3556", paint: "#37C5D6", match: ["*fastapi*", "ai-*", "*-ai", "*-ai-*", "*llm*"] },
     { id: "fe", screen: ["uc-frontend-nextjs", "frontend-nextjs", "fe-uc"], name: "Frontend", tool: "roller", decor: "paint", props: ["bunting", "poster", "plant"], wall: "#2A2147", floor: "#41337A", paint: "#8B5CF6", match: ["*frontend*", "*nextjs*", "fe-*", "*-fe", "*-fe-*"] },
@@ -35,6 +46,7 @@ export const path = () => `${appHome()}/uc-workspace.json`;
 const merge = (a, b) => {
   const out = { ...a, ...b };
   out.agents = { ...a.agents, ...(b?.agents ?? {}) };
+  out.spaces = { ...a.spaces, ...(b?.spaces ?? {}) };
   if (b?.floors) {
     const byId = new Map(b.floors.map((f) => [f.id, f]));
     const known = a.floors.map((f) => ({ ...f, ...(byId.get(f.id) ?? {}) }));
@@ -54,7 +66,7 @@ export async function load() {
 
 // Makes the file (once) with the defaults so there is something to edit.
 export async function ensureFile() {
-  const body = JSON.stringify({ motion: DEFAULTS.motion, floors: DEFAULTS.floors, agents: DEFAULTS.agents, review: DEFAULTS.review, tokensOutAt: DEFAULTS.tokensOutAt }, null, 2);
+  const body = JSON.stringify({ motion: DEFAULTS.motion, splitSpaces: DEFAULTS.splitSpaces, spaces: DEFAULTS.spaces, floors: DEFAULTS.floors, agents: DEFAULTS.agents, review: DEFAULTS.review, tokensOutAt: DEFAULTS.tokensOutAt }, null, 2);
   await writeTextFile(path(), body, null).catch(() => {});
 }
 
